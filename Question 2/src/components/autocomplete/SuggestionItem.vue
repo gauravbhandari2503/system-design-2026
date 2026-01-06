@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import type { SearchResult } from '../../models/SearchResult';
 
-defineProps<{
+const props = defineProps<{
   item: SearchResult;
   active: boolean;
+  query: string;
 }>();
+
+const highlight = (text: string) => {
+  if (!props.query || !text) return text;
+  
+  const regex = new RegExp(`(${props.query})`, 'gi');
+  return text.replace(regex, '<span class="font-bold text-blue-600">$1</span>');
+};
 </script>
 
 <template>
@@ -32,8 +40,8 @@ defineProps<{
 
     <!-- Content -->
     <div class="flex flex-col flex-1 min-w-0">
-      <span class="text-sm font-medium text-gray-900 truncate" v-html="item.title"></span>
-      <span v-if="item.subtitle" class="text-xs text-gray-500 truncate">{{ item.subtitle }}</span>
+      <span class="text-sm font-medium text-gray-900 truncate" v-html="highlight(item.title)"></span>
+      <span v-if="item.subtitle" class="text-xs text-gray-500 truncate" v-html="highlight(item.subtitle)"></span>
     </div>
     
     <!-- Action/Arrow -->

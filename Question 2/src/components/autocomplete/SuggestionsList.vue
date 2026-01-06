@@ -2,16 +2,43 @@
 import type { SearchResult } from '../../models/SearchResult';
 import SuggestionItem from './SuggestionItem.vue';
 
-defineProps<{
+const props = defineProps<{
   results: SearchResult[];
   loading: boolean;
   activeIndex: number;
+  query: string;
 }>();
 
 const emit = defineEmits<{
   (e: 'select', item: SearchResult): void;
-  (e: 'hover', index: number): void; // For mouse hover to sync active index
+  (e: 'hover', index: number): void;
 }>();
+
+import { computed } from 'vue';
+
+const groupedResults = computed(() => {
+  const groups: Record<string, SearchResult[]> = {
+    'Suggestions': [],
+    'People': [],
+    'Groups': []
+  };
+  
+  props.results.forEach(item => {
+    if (item.type === 'user') groups['People'].push(item);
+    else if (item.type === 'group') groups['Groups'].push(item);
+    else groups['Suggestions'].push(item);
+  });
+  
+  // Remove empty groups
+  return Object.fromEntries(
+    Object.entries(groups).filter(([_, items]) => items.length > 0)
+  );
+});
+
+// Helper to find absolute index in the flat results array
+const getOriginalIndex = (item: SearchResult) => {
+  return props.results.findIndex(r => r.id === item.id);
+};
 </script>
 
 <template>
@@ -30,20 +57,37 @@ const emit = defineEmits<{
       No results found
     </div>
 
-    <!-- Results List -->
-    <ul v-else class="py-2">
-      <li 
-        v-for="(item, index) in results" 
-        :key="item.id"
-        @mouseenter="emit('hover', index)"
-        @click="emit('select', item)"
-      >
-        <SuggestionItem 
-          :item="item" 
-          :active="index === activeIndex" 
-        />
-      </li>
-    </ul>
+    <!-- Results List (Grouped) -->
+    <div 
+      v-else 
+      class="py-2 max-h-[400px] overflow-y-auto"
+      role="listbox"
+    >
+      <template v-for="(group, groupName) in groupedResults" :key="groupName">
+        <!-- Group Header (if mixed types) -->
+        <div v-if="Object.keys(groupedResults).length > 1 && group.length > 0" class="px-4 py-1 text-xs font-semibold text-gray-400 bg-gray-50/50 uppercase tracking-wider">
+          {{ groupName }}
+        </div>
+        
+        <ul>
+          <li 
+            v-for="(item, index) in group" 
+            :key="item.id"
+            @mouseenter="emit('hover', getOriginalIndex(item))"
+            @click="emit('select', item)"
+            role="option"
+            :aria-selected="getOriginalIndex(item) === activeIndex"
+            :id="`suggestion-${getOriginalIndex(item)}`"
+          >
+            <SuggestionItem 
+              :item="item" 
+              :query="query"
+              :active="getOriginalIndex(item) === activeIndex" 
+            />
+          </li>
+        </ul>
+      </template>
+    </div>
 
     <!-- Footer -->
     <div class="bg-gray-50 px-4 py-2 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">

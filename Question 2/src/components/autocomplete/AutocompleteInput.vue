@@ -104,6 +104,11 @@ const handleFocus = () => {
         @focus="handleFocus"
         @blur="handleBlur"
         autocomplete="off"
+        role="combobox"
+        aria-autocomplete="list"
+        :aria-expanded="showSuggestions && results.length > 0"
+        aria-haspopup="listbox"
+        :aria-activedescendant="activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined"
       />
 
       <!-- Clear Button (visible when query exists) -->
@@ -130,6 +135,7 @@ const handleFocus = () => {
         :results="results"
         :loading="loading"
         :active-index="activeIndex"
+        :query="query"
         @select="handleSelect"
         @hover="(idx) => activeIndex = idx"
       />

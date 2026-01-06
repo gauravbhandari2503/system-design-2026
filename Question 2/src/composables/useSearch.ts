@@ -7,10 +7,22 @@ export function useSearch(debounceTime: number = 300) {
   const results = ref<SearchResult[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  
+  // Simple LRU-like cache
+  const cache = new Map<string, SearchResult[]>();
+  const MAX_CACHE_SIZE = 50;
 
   const executeSearch = async (query: string) => {
-    if (!query.trim()) {
+    const trimmedQuery = query.trim().toLowerCase();
+    
+    if (!trimmedQuery) {
       results.value = [];
+      return;
+    }
+
+    // Check cache first
+    if (cache.has(trimmedQuery)) {
+      results.value = cache.get(trimmedQuery)!;
       return;
     }
 
@@ -18,7 +30,16 @@ export function useSearch(debounceTime: number = 300) {
     error.value = null;
 
     try {
-      results.value = await SearchService.search(query);
+      const data = await SearchService.search(query);
+      results.value = data;
+      
+      // Update cache
+      if (cache.size >= MAX_CACHE_SIZE) {
+        const firstKey = cache.keys().next().value;
+        if (firstKey) cache.delete(firstKey);
+      }
+      cache.set(trimmedQuery, data);
+      
     } catch (err) {
       error.value = 'Failed to fetch results';
       console.error(err);
@@ -34,6 +55,6 @@ export function useSearch(debounceTime: number = 300) {
     loading,
     error,
     debouncedSearch,
-    executeSearch // Exposing raw function if needed
+    executeSearch
   };
 }
