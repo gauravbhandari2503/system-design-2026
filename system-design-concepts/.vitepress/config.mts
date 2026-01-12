@@ -91,5 +91,9 @@ export default defineConfig({
         link: "https://github.com/gauravbhandari2503/system-design-frontend",
       },
     ],
+    footer: {
+      message: "Authored by Gaurav Bhandari | Contact: +91 7351088383",
+      copyright: "Email: gaurav2503bhandari@gmail.com",
+    },
   },
 });

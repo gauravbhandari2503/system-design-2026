@@ -20,4 +20,6 @@ features:
     details: Micro-frontends, Monorepos, and State Management at scale.
   - title: Reliability & Security
     details: Robust error handling, security best practices, and testing strategies.
+  - title: About the Author
+    details: Created by Gaurav Bhandari. Contact +91 7351088383 | gaurav2503bhandari@gmail.com
 ---
