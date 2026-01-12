@@ -1,0 +1,6 @@
+[build]
+  command = "npm run docs:build"
+  publish = "system-design-concepts/.vitepress/dist"
+
+[context.production]
+  environment = { NODE_VERSION = "20" }
